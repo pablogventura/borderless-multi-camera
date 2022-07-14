@@ -1,5 +1,5 @@
 // alwais on top, borderless, transparent, camera
-const {app, BrowserWindow} = require('electron')
+const { app, BrowserWindow } = require('electron')
 const path = require('path')
 const url = require('url')
 const version = require('../../package.json').version
@@ -10,38 +10,58 @@ var ipc = require('electron').ipcMain;
 // be closed automatically when the JavaScript object is garbage collected.
 let win
 
-ipc.on('invokeAction', function(event, data){
-    // var result = processData(data);
-    if (data === 'appVersion') {
-      event.returnValue = version
-    }
+function gotDevices() {
+  window.deviceInfos = deviceInfos; // make available to console
 
-    if (data === 'appQuit') {
-        app.quit()
-    }
+}
 
-    if (data === 'debugMode') {
-        win.webContents.openDevTools()
-    }
+ipc.on('invokeAction', function (event, data) {
+  // var result = processData(data);
+  if (data === 'appVersion') {
+    event.returnValue = version
+  }
 
-    if (data === 'toggleVisibleOnAllWorkspaces') {
-      win.setVisibleOnAllWorkspaces(false)
-        console.log(win)
-    }
+  if (data === 'appQuit') {
+    app.quit()
+  }
 
-    if (data === 'toggleAlwaysOnTop') {
-      win.setAlwaysOnTop(false)
-        console.log(win)
-    }
+  if (data === 'debugMode') {
+    win.webContents.openDevTools()
+  }
 
-    
-    console.log(data)
-    // win.setAlwaysOnTop(false)
-    
-    // event.sender.send('actionReply', result);
+  if (data === 'toggleVisibleOnAllWorkspaces') {
+    win.setVisibleOnAllWorkspaces(false)
+    console.log(win)
+  }
+
+  if (data === 'toggleAlwaysOnTop') {
+    win.setAlwaysOnTop(false)
+    console.log(win)
+  }
+  if (data === 'gotDevices') {
+    deviceInfos = navigator.mediaDevices.enumerateDevices();
+    console.log('Available input and output devices:', deviceInfos);
+    for (const deviceInfo of deviceInfos) {
+      const option = document.createElement('option');
+      option.value = deviceInfo.deviceId;
+      console.log(deviceInfo.deviceId)
+      if (deviceInfo.kind === 'audioinput') {
+        option.text = deviceInfo.label || `Microphone ${audioSelect.length + 1}`;
+        audioSelect.appendChild(option);
+      } else if (deviceInfo.kind === 'videoinput') {
+        option.text = deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+        videoSelect.appendChild(option);
+      }
+    }
+  }
+
+  console.log(data)
+  // win.setAlwaysOnTop(false)
+
+  // event.sender.send('actionReply', result);
 });
 
-function createWindow () {
+function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
     width: 480,
